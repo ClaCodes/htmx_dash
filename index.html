@@ -1,0 +1,114 @@
+{{ block "/" . }}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>HTMX Dashboard Demo</title>
+        <script src="/htmx.min.js"></script>
+    </head>
+    <body>
+        <h1>Status</h1>
+        <table hx-get="/status" hx-trigger="every 1s">
+            {{ block "/status" .}}
+            <tr>
+                <th>Variable</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>{{ .Status.Date }}</td>
+            </tr>
+            <tr>
+                <td>Time</td>
+                <td>{{ .Status.Time }}</td>
+            </tr>
+            <tr>
+                <td>Uptime</td>
+                <td>{{ .Status.Uptime }}</td>
+            </tr>
+            <tr>
+                <td>Status Update Count</td>
+                <td>{{ .Status.StatusUpdateCount }}</td>
+            </tr>
+            <tr>
+                <td>Config Update Count</td>
+                <td>{{ .Status.ConfigUpdateCount }}</td>
+            </tr>
+            <tr>
+                <td>Log Count</td>
+                <td>{{ .Status.LogCount }}</td>
+            </tr>
+            {{ end }}
+        </table>
+        <h1>Config</h1>
+        {{ if false }}
+        {{ block "/config/edit" . }}
+        <form id="config">
+            <button hx-put="config" hx-target="#config" hx-swap="outerHTML">Save</button>
+            <button hx-delete="config/edit" hx-target="#config" hx-swap="outerHTML">Cancel</button>
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td>StatusUpdatePeriod</td>
+                    <td><input type="text" name="StatusUpdatePeriod" value="{{ .Config.StatusUpdatePeriodString }}"></input></td>
+                    <td class="error">{{ .Config.StatusUpdatePeriodError }}</td>
+                </tr>
+                <tr>
+                    <td>LogSeverity</td>
+                    <td>
+                        <select name="LogSeverity" id="LogSeverity">
+                            <option value="Trace" {{ if eq .Config.LogSeverity "Trace" }}selected="selected"{{ end }}>Trace</option>
+                            <option value="Info" {{ if eq .Config.LogSeverity "Info" }}selected="selected"{{ end }}>Info</option>
+                            <option value="Warning" {{ if eq .Config.LogSeverity "Warning" }}selected="selected"{{ end }}>Warning</option>
+                            <option value="Error" {{ if eq .Config.LogSeverity "Error" }}selected="selected"{{ end }}>Error</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        </form>
+        {{ end }}
+        {{ end }}
+        {{ block "/config" . }}
+        <div id="config">
+            <button hx-get="config/edit" hx-target="#config" hx-swap="outerHTML">Inc3</button>
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>StatusUpdatePeriod</td>
+                    <td>{{ .Config.StatusUpdatePeriod }}</td>
+                </tr>
+                <tr>
+                    <td>LogSeverity</td>
+                    <td>{{ .Config.LogSeverity }}</td>
+                </tr>
+            </table>
+        </div>
+        {{ end }}
+        <h1>Log</h1>
+        <table>
+            <tr>
+                <th>Time</th>
+                <th>Severity</th>
+                <th>Message</th>
+            </tr>
+            {{ block "/logs" . }}
+            <tr hx-get="/logs" hx-trigger="load delay:3s" hx-swap="outerHTML" hx-vals='{"LoadNext":"{{ .Logs.LoadNext }}"}'></tr>
+            {{ range .Logs.Entries }}
+            <tr>
+                <td>{{ .Time }}</td>
+                <td>{{ .Severity }}</td>
+                <td>{{ .Message }}</td>
+            </tr>
+            {{ end }}
+            {{ end }}
+        </table>
+    </body>
+</html>
+{{ end }}
